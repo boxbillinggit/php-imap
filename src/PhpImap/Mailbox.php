@@ -353,6 +353,23 @@ class Mailbox {
 	public function clearFlag(array $mailsIds, $flag) {
 		$this->imap('clearflag_full', [implode(',', $mailsIds), $flag, ST_UID]);
 	}
+	
+	public function sendMails($to, $subject, $body, $headers, $cc, $bcc, $return_path,$save) {
+		\imap_mail($to, $subject, $body, $headers, $cc, $bcc, $return_path); 
+		if($save == 1) {
+		$server = explode('@', $this->imapLogin);
+		$stream = imap_open("{".$server[1].":993/imap/notls}Sent",  $this->imapLogin, $this->imapPassword);
+		\imap_append($stream, "{".$server[1].":993/imap/notls}Sent",
+		    "From: ".$this->imapLogin."\r\n".
+		    "To: ".$to."\r\n".
+		    "Subject: ".$subject."\r\n".
+		    "Date: ".date("r", strtotime("now"))."\r\n".
+		    "\r\n".
+		    $body.
+		    "\r\n"
+		    );
+		}
+	}
 
 	/**
 	 * Fetch mail headers for listed mails ids
